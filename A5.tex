@@ -32,7 +32,7 @@
  
 
 
-\title{CSC263: Assignment 3}
+\title{CSC263: Assignment 5}
 \date{March 30th, 2017}
 \author{Junjie Cheng, Jiayun Liu, Zi Hao Lin}
 \maketitle
@@ -43,10 +43,73 @@
 \question
 %Question1
 \begin{solution}
-\begin{parts}
-\part
+\begin{lemma}
+For any undirected connected graph $G=(V,E)$, choose an arbitrary vertex $v \in V$, then for all $u \in V$, $u$ is reachable by $v$. That is, the predecessor subgraph of a depth-first search on the undirected graph forms only one depth-first tree.
+\end{lemma}
+This lemma follows immediately by the property of connected graph and undirected graph.
+\begin{lemma}
+Perform DFS on any undirected connected graph $G=(V,E)$, there must be at least one node in the corresponding depth-first tree such that it is either a leaf (connected by only one tree edge) or a node whose all (immediate) descendants are connected by back edges. Moreover, the last discovered vertex during the DFS procedure is such a node.
+\end{lemma}
+The proof for this lemma is also easy. Consider a DFS on an arbitrary undirected connected graph $G=(V,E)$. Consider the last vertex discovered by the algorithm. Let's name it $m$. If $|V| = 1$, then $m$ must be a leaf. Now suppose $|V|>1$. Since $m$ is discovered by its (immediate) ancestor $m.\pi$, $m$'s adjacent list must contain $m.\pi$. Note that $m$'s adjacent list can either contain other vertices or does not contain other vertex than $m.\pi$. In the prior case, since all vertices are reachable by any vertex in the graph, $m$'s (immediate) descendants must be at least discovered by DFS (or $m$ cannot be the last vertex discovered by the algorithm); $m$'s (immediate) descendants cannot be black as well, since it is impossible to discover a black node in undirected graph. So all $m$'s (immediate) descendants are gray, i.e. $m$ and all its (immediate) descendants are connected by back edges. In the latter case, $m$ will not have any descendant, thus is a leaf
+\begin{lemma}
+Removing a vertex $m$ that is a leaf or a node whose all (immediate) descendants are connected by back edges in a depth-first tree will not disconnect the tree. 
+\end{lemma}
+If $|V| = 1$ then after removal the graph is vacuouly connected. If $|V| >1$ then we can do proof by cases. If $m$ is a leaf in a depth-first tree, it's ancestor $m.\pi$ is still connected by $m.\pi.\pi$, and any other vertices in the graph will not be affected by the removal. If $m$ is a node whose all (immediate) descendants are connected by back edges, then again, its ancestor and all its descendants are still connected by their ancestors. In either case, after removal, all nodes' ancestors persists, i.e. every node still have a path back to the root vertex (by recursively stepping to the ancestor of the current node). So all vertices in the tree are still reachable by the root vertex. Since the depth-first tree contains all vertices in the graph (by lemma 1), the graph is not disconnected after the removal of $m$ along with all incident edges.
 
-\end{parts}
+Our algorithm is a slightly modified version of DFS. We want to find the last white node in the DFS algorithm.
+When coloring all the vertices, we count the total number of vertices in the graph. We use another counter to keep track of the white nodes discovered upon each discovery. 
+
+\begin{codebox}
+ $white\_counter = 0$ //{global variable} \\
+ $vertex\_counter = 0$ //{global variable}
+\end{codebox}
+\begin{codebox}
+\Procname{$\proc{DFS}(G)$}
+\li $vertex\_counter = 0$
+\li \For {each vertex} $u \in G.V$ \Do
+\li     $u.color = WHITE$
+\li     $u.\pi = NIL$
+\li     $vertex\_counter += 1$ \End
+\li $white\_counter = 0$
+\li \For {each vertex} $u \in G.V$ \Do
+\li     \If $u.color == WHITE$ \Then 
+\li         $white\_counter ++$
+\li         \If $white\_counter == vertex\_counter$ \Then
+\li             \Return $u$\End
+\li         \Return $\proc{DFS-Visit}(G,u)$ //{Since G is connected and undirected, $u$ can reach all vertices}
+\End\End
+\end{codebox}
+\begin{codebox}
+\Procname{$\proc{DFS-Visit}(G, u)$}
+\li $u.color =GRAY$
+\li \For {each} $v \in G.Adj[u]$ \Do
+\li     \If $v.color == WHITE$ \Then
+\li         $v.\pi = u$
+\li         $white\_counter++$
+\li         \If $white\_counter == vertex\_counter$ \Then
+\li             \Return $v$
+\li         \Else 
+\li             $x = \proc{DFS-Visit}(G,u)$
+\li             \If $x != NIL$ \Then
+\li                 $removable = x$ \End\End\End\End
+\li $u.color = BLACK$
+\li \Return $removable$
+\end{codebox}
+
+Correctness: 
+
+We proved that the last white node (vertex)'s removal does not disconnect the graph. So we only need to prove this algorithm finds the last white node correctly.
+
+Assume there are $n$ vertices in the graph. After the first for loop in $\proc{DFS}(G)$, we will have $vertex\_counter = n$. If $|V| = 1$ then the condition in line 10 is true and the returned $u$ is indeed the last white node because there is only one vertex in the graph. Now assume $|V|>1$.
+
+By lemma 1, since every vertex is reachable by an arbitrary vertex, it is safe to call $\proc{DFS-Visit}(G,u)$ only once in $\proc{DFS}(G)$. Again, since every vertex is reachable, every (initially white) vertex will be discovered once by the DFS, so a total of $n$ white nodes will be visited and it is always the case that $white\_counter$ reaches $n$. So, there must be a time that $\proc{DFS-Visit}(G,u)$ returns a vertex. Let's say the returned vertex is $p$. According to the $white\_counter$, $p$ must be the last white vertix discovered. Note that $\proc{DFS-Visit}(G,p)$ returns $p$, in the previous recursive call, $\proc{DFS-Visit}(G,p.\pi)$, in some iteration of the for loop, line 9 must return $p$, so $removable$ gets the vertex point $p$ and gets returned in line 13.
+
+By doing induction backwards, we can say that the first function call of $\proc{DFS-Visit}(G,u)$ also returns $p$. That is, on line 12 of $\proc{DFS}(G)$, $p$, the last white vertex discovered by DFS, is returned. By lemma 2 and lemma 3, the algorithm is correct.
+
+Time complexity:
+
+The worst case complexity of DFS is $O(|V|+|E|)$. In our modified version, we only add $white\_counter$ and $vertex\_counter$ in the code. $vertex\_counter$ is accumulated once for each vertex, taking additional $O(|V|)$ time; $white\_counter$'s increment and the following conditional statements are executed only when encountering a new white vertex. Since there are $O(|V|)$ white vertices initially and as soon as white vertex is discovered it is turned gray, the execution of the increment of $white\_counter$ and the following conditional statements should take $O(|V|)$as well. So, our algorithm takes $$O(|V|+|E|)+O(|V|)+O(|V|)=O(|V|+|E|)$$ in the worst case.
+
 \end{solution}
 
 \question
