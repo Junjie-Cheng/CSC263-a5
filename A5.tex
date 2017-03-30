@@ -28,9 +28,7 @@
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 
- \begin{document}
- 
-
+\begin{document}
 
 \title{CSC263: Assignment 5}
 \date{March 30th, 2017}
@@ -96,7 +94,7 @@ When coloring all the vertices, we count the total number of vertices in the gra
 \li \Return $removable$
 \end{codebox}
 
-Correctness: 
+\textbf{Correctness:}
 
 We proved that the last white node (vertex)'s removal does not disconnect the graph. So we only need to prove this algorithm finds the last white node correctly.
 
@@ -106,7 +104,7 @@ By lemma 1, since every vertex is reachable by an arbitrary vertex, it is safe t
 
 By doing induction backwards, we can say that the first function call of $\proc{DFS-Visit}(G,u)$ also returns $p$. That is, on line 12 of $\proc{DFS}(G)$, $p$, the last white vertex discovered by DFS, is returned. By lemma 2 and lemma 3, the algorithm is correct.
 
-Time complexity:
+\textbf{Time complexity:}
 
 The worst case complexity of DFS is $O(|V|+|E|)$. In our modified version, we only add $white\_counter$ and $vertex\_counter$ in the code. $vertex\_counter$ is accumulated once for each vertex, taking additional $O(|V|)$ time; $white\_counter$'s increment and the following conditional statements are executed only when encountering a new white vertex. Since there are $O(|V|)$ white vertices initially and as soon as white vertex is discovered it is turned gray, the execution of the increment of $white\_counter$ and the following conditional statements should take $O(|V|)$as well. So, our algorithm takes $$O(|V|+|E|)+O(|V|)+O(|V|)=O(|V|+|E|)$$ in the worst case.
 
@@ -117,79 +115,97 @@ The worst case complexity of DFS is $O(|V|+|E|)$. In our modified version, we on
 \begin{solution}
 \begin{parts}
 \part 
-Assume there exist a bipartite G that contains a simple circle of odd length.
+Assume for contradiction that there exist a bipartite $G$ that contains a simple cycle of odd length.
 
-Start with any vertex and name each vertex in this circle in order with $v_1$,$v_2$...$v_{2k+1}$. Every two adjacent vertexes are connected by an edge, and since it is a circle, $v_{2k+1}$ is connected with $v_1$.
+Consider the cycle of odd length. Start with any vertex and label each vertex in this cycle with $v_1$,$v_2$...$v_{2k+1}$ in order. Every two adjacent vertexes are connected by an edge$(v_i, v_{i+1})$, and since it is a cycle, $v_{2k+1}$ is connected with $v_1$.
 
-For all $v_i$, it will be put into V1 if i is odd and V2 if i is even. As a result, until $v_{2k}$, no two connected vertexes will be put into the same subset.
+Without loss of generality, we put $v_1$ into $V_0$. To satisfy the property of bipartite, $v_2$ should be put into $V_1$, $v_3$ should be put into $V_0$ and so on.
+
+To make the property of bipartite hold on the first $2k$ edges, $v_i$ should be put into $V_0$ if $i$ is odd and to $V_1$ if $i$ is even for $1 \le i \le 2k+1$.
  
-However, $v_{2k+1}$ will inevitably be put into V1, which is the same set of $v_1$. By the principle of bipartite, no two connected vertexes can be put into the same V, so there is a contradiction.
+However, the edge $(v_{2k+1}, v_1)$ will contradict the property of bipartite because both $v_{2k+1}$ and $v_1$ are in $V_0$. This is a contradiction.
 
-Thus, a bipartite G contains no simple circle of odd length.
+Thus, a bipartite G contains no simple cycle of odd length.
 
 \part
-General idea: We are going to perform a BFS and use the distance. If d[v] is odd, then put v into V1, if d[v] is even, then put v into V2.
+General idea: We are going to perform BFS and use the distance to divide the set of vertices into two subsets $V_0$ and $V_1$ without overlap. If $d[v]$ is odd, then we can put $v$ into $V_0$; if $d[v]$ is even, then we can put it into $V_1$. After the algorithm is executed, every vertex will be put into either $V_0$ or $V_1$ and there is no overlap between $V_0$ and $V_1$, and for each edge, the Bipartite property holds.
 
 Proof:
 
- \textbf{Base case:}
+By assumption, $G$ has no simple cycle of odd length, so $G$ has no cycle or every cycle in $G$ has even length.
 
-If v is the only vertex with d[v], then d[v] = d[s] = 0, put it into V2. 
+We can prove the the theorem by induction on the edges discovered by BFS.
 
-If v and u are the only two vertexes and v discovers u, then d[v] = 0, d[u] = d[v] + 1 = 1. As a result, v is in V2, u is in V1, and the two connected vertexes are in different subsets. This satisfies the principle of bipartite.
+\textbf{Base case:}
 
-\textbf{Induction:}
+If $v$ is the only vertex discovered (and no edges are discovered), then $v$ is the starting point, $d[v] = d[s] = 0$, put it into $V_1$. Bipartite property holds. All discovered vertices are properly divided.
+
+If only $(u,v)$ are the only discovered edge and $v$ discovers $u$, then $d[v] = 0$, $d[u] = d[v] + 1 = 1$. As a result, $v$ is put into $V_1$, $u$ is put into $V_0$, and the two connected vertexes are in different subsets. This satisfies the principle of bipartite, and all discovered vertices are properly divided.
 
 \textbf{I.H:} 
 
-Suppose all vertexes before v (include v) are put into V1 and V2 and satisfy the condition of bipartite. Assume every circle in G has even length and v connect to u.
+Suppose all edges discovered before discovering $(u,v)$ satisfies the bipartite property. That is, all vertices relevant to the discovered edges are properly put into either $V_0$ and $V_1$ and all discovered edges satisfy the condition of bipartite. 
+
+$v$ and $u$ are connected by $(u,v)$.
 
 \textbf{I.S:}
 
-By the principle of BFS, as u is connect to v, then:
+By the principle of BFS, $v$ is connected to $u$.
 
-\textbf{Case 1}: u is white
+We can discuss the color of $v$ by cases.
 
-Then d[u] = d[v] + 1. 
+\textbf{Case 1}: $v.color$ is white
 
-Then if d[v] is odd, then d[u] is even, vice versa.
+$u$ is undiscovered before $(u,v)$ is discovered. $d[v] = d[u] + 1$. 
 
-Then u and v will be in two different V, which satisfy the bipartite condition for any v and u.
+If $d[v]$ is odd, then $d[u]$ is even, and vice-versa. Either way, $u$ and $v$ will be put into two different subsets of $V$, which satisfy the bipartite condition for any $v$ and $u$. Moreover, all discovered vertices are properly divided.
 
-\textbf{Case 2}: u is gray or black
+\textbf{Case 2}: $v.color$ is gray or black
 
-Now we meet a circle. 
+Then adding the edge $(u,v)$ forms a cycle. 
 
-As every circle given has even length, if we start from u to v, by principle of BFS, d[u] = d[v] + 2k +1 where k is the number of vertexes in the circle.
+By assumption, every cycle given has even length. Note that $v$ is discovered or finished before, we want to show that the edge $(u,v)$ does not violate the bipartite condition.
 
-So u and v will still be in different V, the graph with u, v is bipartite.
+Since there is a cycle with even length, there is an edge that connect $v$ and $u$, we know that the other path from $u$ to $v$ contains odd number of edges (and even number of vertices in between). By induction hypothesis, all previous discovered edges satisfies the bipartite condition, that is, if we label the other longer path in the order $u, p_1, p_2, ..., p_{2k}, v$, the bipartite property implies any two adjacent vertices are not in the same subset of $V$. So, for all $1 \lt i \lt k$, $u$ and all $p_{2i}$ are in one subset of $V$; all $p_{2i-1}$ and $v$ are in the other subset of $V$. 
 
-Induction follows.
+Now consider the edge $(u,v)$, since $u$ and $v$ are not in the same subset of $V$, the bipartite property holds on edge $(u,v)$. Also, the division of vertices are maintained so all discovered vertices are still properly divided.
+
+This finishes the induction.
+
+Note that BFS visits all the edges in the graph, so when BFS finishes executing, by induction, all edges satisfies the bipartite property, and all vertices are divided into two subsets of $V$ without overlap. (We don't even need to consider whether the graph is connected because bipartite property only depends on the division of the vertices and whether the property holds on every edge).
+
+Thus, if $G$ has no simple cycle of odd length, then $G$ is bipartite.
 
 \part
-The algorithm:
+We designed part of the algorithm in 2(b). Now we need to consider the case that the graph is not bipartite.
 
-Run BFS and put vertexes into V1 and V2 according to part(b).
+If the graph is not bipartite, then there must exist a cycle with odd length. So whenever a cycle is formed after an edge $(u,v)$ is added, check $d[v] - d[u]$. If the result is even, then $u$ and $v$ must be put into the same set, and edge $(u,v)$ will violate the bipartite property.
 
-Every time when v discovers u and u is grey or black, check if (d[v] - d[u] - 1) $\%$ 2 = 0.
+So our algorithm is:
 
-If true, then we meet an even circle, keep going.
+Create two sets $V_0$ and $V_1$.
 
-If false, then we meet an odd circle, return "Not bipartite".
+Run BFS and put vertexes into $V_0$ and $V_1$ according to part(b).
 
+Every time when $v$ discovers a grey or black node $u$, check whether $(d[v] - d[u]  \% 2 = 1)$.
 
-Running time:
+If true, then the created cycle has even length, keep going.
 
-In the algorithm, both putting vertexes into subset or checking even or odd circles only need some simple steps and run constant time.
+If false, then the created cycle has odd length, return "Not bipartite" immediately.
 
-Therefore, the running time will be same as BFS(G,s), which is O(m+n).
+When the BFS completes without returning "Not bipartite", we know that the graph is bipartite and return the sets $V_0$ and $V_1$.
 
+The correctness follows from part 2(b) and the explanations above in 2(c).
 
+\textbf{Running time:}
+
+In the algorithm, both putting vertexes into subset or checking even or odd cycles only need some simple steps and run constant time.
+
+Therefore, the running time will be same as $\proc{BFS}(G,s)$, which is $O(|V|+|E|) = O(n+m)$.
 
 
 \end{parts}
 \end{solution}
-
 
 \question
 %Question3
@@ -205,7 +221,7 @@ Edge weights: The distance between the two corresponding bike pump stations (ver
 Problem: A set of vertices $V$ is given. Each vertex $v \in V$ is positioned at $(x_v, y_v)$, and there is an edge $(u,v)$ between any two distinct vertices $u \in V, v \in V$ with the edge weight $\sqrt{(x_v - x_u)^2+(y_v - y_u)^2}$. Goal: given $s \in V, t \in V$, find a path from $s$ to $t$ such that the edge weight of each edge on that path is minimized.
 
 \part
-The Minimal Spanning Tree generated by Kruskal’s algorithm can be used to find the desired path efficiently.
+The Minimal Spanning Tree generated by Kruskal’s algorithm can be used to find the desired path efficiently. 
 
 \part
 The algorithm:
