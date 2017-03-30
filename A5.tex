@@ -54,6 +54,74 @@
 \begin{solution}
 \begin{parts}
 \part 
+Assume there exist a bipartite G that contains a simple circle of odd length.
+
+Start with any vertex and name each vertex in this circle in order with $v_1$,$v_2$...$v_{2k+1}$. Every two adjacent vertexes are connected by an edge, and since it is a circle, $v_{2k+1}$ is connected with $v_1$.
+
+For all $v_i$, it will be put into V1 if i is odd and V2 if i is even. As a result, until $v_{2k}$, no two connected vertexes will be put into the same subset.
+ 
+However, $v_{2k+1}$ will inevitably be put into V1, which is the same set of $v_1$. By the principle of bipartite, no two connected vertexes can be put into the same V, so there is a contradiction.
+
+Thus, a bipartite G contains no simple circle of odd length.
+
+\part
+General idea: We are going to perform a BFS and use the distance. If d[v] is odd, then put v into V1, if d[v] is even, then put v into V2.
+
+Proof:
+
+ \textbf{Base case:}
+
+If v is the only vertex with d[v], then d[v] = d[s] = 0, put it into V2. 
+
+If v and u are the only two vertexes and v discovers u, then d[v] = 0, d[u] = d[v] + 1 = 1. As a result, v is in V2, u is in V1, and the two connected vertexes are in different subsets. This satisfies the principle of bipartite.
+
+\textbf{Induction:}
+
+\textbf{I.H:} 
+
+Suppose all vertexes before v (include v) are put into V1 and V2 and satisfy the condition of bipartite. Assume every circle in G has even length and v connect to u.
+
+\textbf{I.S:}
+
+By the principle of BFS, as u is connect to v, then:
+
+\textbf{Case 1}: u is white
+
+Then d[u] = d[v] + 1. 
+
+Then if d[v] is odd, then d[u] is even, vice versa.
+
+Then u and v will be in two different V, which satisfy the bipartite condition for any v and u.
+
+\textbf{Case 2}: u is gray or black
+
+Now we meet a circle. 
+
+As every circle given has even length, if we start from u to v, by principle of BFS, d[u] = d[v] + 2k +1 where k is the number of vertexes in the circle.
+
+So u and v will still be in different V, the graph with u, v is bipartite.
+
+Induction follows.
+
+\part
+The algorithm:
+
+Run BFS and put vertexes into V1 and V2 according to part(b).
+
+Every time when v discovers u and u is grey or black, check if (d[v] - d[u] - 1) $\%$ 2 = 0.
+
+If true, then we meet an even circle, keep going.
+
+If false, then we meet an odd circle, return "Not bipartite".
+
+
+Running time:
+
+In the algorithm, both putting vertexes into subset or checking even or odd circles only need some simple steps and run constant time.
+
+Therefore, the running time will be same as BFS(G,s), which is O(m+n).
+
+
 
 
 \end{parts}
