@@ -52,7 +52,7 @@ The proof for this lemma is also easy. Consider a DFS on an arbitrary undirected
 \begin{lemma}
 Removing a vertex $m$ that is a leaf or a node whose all (immediate) descendants are connected by back edges in a depth-first tree will not disconnect the tree. 
 \end{lemma}
-If $|V| = 1$ then after removal the graph is vacuouly connected. If $|V| >1$ then we can do proof by cases. If $m$ is a leaf in a depth-first tree, it's ancestor $m.\pi$ is still connected by $m.\pi.\pi$, and any other vertices in the graph will not be affected by the removal. If $m$ is a node whose all (immediate) descendants are connected by back edges, then again, its ancestor and all its descendants are still connected by their ancestors. In either case, after removal, all nodes' ancestors persists, i.e. every node still have a path back to the root vertex (by recursively stepping to the ancestor of the current node). So all vertices in the tree are still reachable by the root vertex. Since the depth-first tree contains all vertices in the graph (by lemma 1), the graph is not disconnected after the removal of $m$ along with all incident edges.
+If $|V| = 1$ then after removal the graph is vacuously connected. If $|V| >1$ then we can do proof by cases. If $m$ is a leaf in a depth-first tree, it's ancestor $m.\pi$ is still connected by $m.\pi.\pi$, and any other vertices in the graph will not be affected by the removal. If $m$ is a node whose all (immediate) descendants are connected by back edges, then again, its ancestor and all its descendants are still connected by their ancestors. In either case, after removal, all nodes' ancestors persists, i.e. every node still have a path back to the root vertex (by recursively stepping to the ancestor of the current node). So all vertices in the tree are still reachable by the root vertex. Since the depth-first tree contains all vertices in the graph (by lemma 1), the graph is not disconnected after the removal of $m$ along with all incident edges.
 
 Our algorithm is a slightly modified version of DFS. We want to find the last white node in the DFS algorithm.
 When coloring all the vertices, we count the total number of vertices in the graph. We use another counter to keep track of the white nodes discovered upon each discovery. 
@@ -100,7 +100,7 @@ We proved that the last white node (vertex)'s removal does not disconnect the gr
 
 Assume there are $n$ vertices in the graph. After the first for loop in $\proc{DFS}(G)$, we will have $vertex\_counter = n$. If $|V| = 1$ then the condition in line 10 is true and the returned $u$ is indeed the last white node because there is only one vertex in the graph. Now assume $|V|>1$.
 
-By lemma 1, since every vertex is reachable by an arbitrary vertex, it is safe to call $\proc{DFS-Visit}(G,u)$ only once in $\proc{DFS}(G)$. Again, since every vertex is reachable, every (initially white) vertex will be discovered once by the DFS, so a total of $n$ white nodes will be visited and it is always the case that $white\_counter$ reaches $n$. So, there must be a time that $\proc{DFS-Visit}(G,u)$ returns a vertex. Let's say the returned vertex is $p$. According to the $white\_counter$, $p$ must be the last white vertix discovered. Note that $\proc{DFS-Visit}(G,p)$ returns $p$, in the previous recursive call, $\proc{DFS-Visit}(G,p.\pi)$, in some iteration of the for loop, line 9 must return $p$, so $removable$ gets the vertex point $p$ and gets returned in line 13.
+By lemma 1, since every vertex is reachable by an arbitrary vertex, it is safe to call $\proc{DFS-Visit}(G,u)$ only once in $\proc{DFS}(G)$. Again, since every vertex is reachable, every (initially white) vertex will be discovered once by the DFS, so a total of $n$ white nodes will be visited and it is always the case that $white\_counter$ reaches $n$. So, there must be a time that $\proc{DFS-Visit}(G,u)$ returns a vertex. Let's say the returned vertex is $p$. According to the $white\_counter$, $p$ must be the last white vertex discovered. Note that $\proc{DFS-Visit}(G,p)$ returns $p$, in the previous recursive call, $\proc{DFS-Visit}(G,p.\pi)$, in some iteration of the for loop, line 9 must return $p$, so $removable$ gets the vertex point $p$ and gets returned in line 13.
 
 By doing induction backwards, we can say that the first function call of $\proc{DFS-Visit}(G,u)$ also returns $p$. That is, on line 12 of $\proc{DFS}(G)$, $p$, the last white vertex discovered by DFS, is returned. By lemma 2 and lemma 3, the algorithm is correct.
 
@@ -183,17 +183,24 @@ If the graph is not bipartite, then there must exist a cycle with odd length. So
 
 So our algorithm is:
 
-Create two sets $V_0$ and $V_1$.
+\begin{itemize}
+    \item Create two sets $V_0$ and $V_1$.
+    
+    \item Run BFS and put vertexes into $V_0$ and $V_1$ according to part(b).
+    
+    \item Every time when $v$ discovers a grey or black node $u$, check whether $(d[v] - d[u]  \% 2 = 1)$.
+    
+    \begin{itemize}
+        \item If true, then the created cycle has even length, keep going.
+    
+        \item If false, then the created cycle has odd length, return "Not bipartite" immediately.
+    \end{itemize}
 
-Run BFS and put vertexes into $V_0$ and $V_1$ according to part(b).
+    \item When the BFS completes without returning "Not bipartite", we know that the graph is bipartite and return the sets $V_0$ and $V_1$.
 
-Every time when $v$ discovers a grey or black node $u$, check whether $(d[v] - d[u]  \% 2 = 1)$.
+\end{itemize}
 
-If true, then the created cycle has even length, keep going.
 
-If false, then the created cycle has odd length, return "Not bipartite" immediately.
-
-When the BFS completes without returning "Not bipartite", we know that the graph is bipartite and return the sets $V_0$ and $V_1$.
 
 The correctness follows from part 2(b) and the explanations above in 2(c).
 
@@ -223,6 +230,12 @@ Problem: A set of vertices $V$ is given. Each vertex $v \in V$ is positioned at 
 \part
 The Minimal Spanning Tree generated by Kruskal’s algorithm can be used to find the desired path efficiently. 
 
+In the MSP generated by Kruskal’s algorithm, there is only one path from $s$ to $t$. We claim that this path is the solution we want. To find the path, an efficient way is to perform $\proc{DFS-Visit}(M,s)$ and record the corresponding node for vertex $t$, then start from $t$, traverse back to $s$ by finding the ancestors recursively, while recording the edges traversed. As can be seen in part (c), both operations takes $O(n)$ time in the worst case, and thus is efficient.
+
+According to the property of Kruskal’s algorithm, the path we find should be the path that minimizes each edge's edge weight.
+
+Assume for contradiction that there exist a path that better minimizes each edge's edge weight. Then since both paths share the vertices $s$ and $t$, there must be at least a cycle. For each cycle, there must exist an edge with the greatest weight, which should be not in the MST (or the MST should instead contain the other path according to the algorithm, because that path will form first as edges are added from the smallest weight to the largest). So path contained in MST should be the path that minimizes each edge's edge weight.
+
 \part
 The algorithm:
 
@@ -239,11 +252,11 @@ In the corresponding depth-first tree $D$, start from $t$, denote it $current\_n
 \part
 To generate the set of edges, a simple way is to find all possible combinations of $(u,v)$ by a outer loop on $u$ and a inner loop on $v$. This takes $O(n^2)$ time in the worst case. Adding the edges into the set and calculating the edge weights also takes $O(n^2)$ time in the worst case since there are  $\frac{n(n-1)}{2}$ edges in total, and both adding elements into a set and calculation takes constant time.
 
-The Kruskal's algorithm has the worst-case time complexity $O(E\log{E})$. Note that in this question, every two vertice generates an edge, so there are $\frac{n(n-1)}{2}$ edges for $n$ vertices. The worst-case time complexity for Kruskal's algorithm is now $O(E\log{E}) = O(\frac{n(n-1)}{2}\log{\frac{n(n-1)}{2}}) =O(n^2 \log{n^2}) = O(2n^2 \log{n}) = O(n^2 \log{n})$.
+The Kruskal's algorithm has the worst-case time complexity $O(E\log{E})$. Note that in this question, every two vertices generates an edge, so there are $\frac{n(n-1)}{2}$ edges for $n$ vertices. The worst-case time complexity for Kruskal's algorithm is now $O(E\log{E}) = O(\frac{n(n-1)}{2}\log{\frac{n(n-1)}{2}}) =O(n^2 \log{n^2}) = O(2n^2 \log{n}) = O(n^2 \log{n})$.
 
 Performing $\proc{DFS-Visit}(M,s)$ takes $O(|E_M|+|V_M|)$ time in the worst case. Note that an MST with $n$ vertices contains only $n-1$ edges. So Performing $\proc{DFS-Visit}(M,s)$ takes $O(|E_M|+|V_M|) = O(n-1+n) = O(n)$ time in the worst case.
 
-The time to traverse from $t$ back to $s$ depends on the number of edges on the path. Noth that the depth-first tree contains $n-1$ edges (because the MST has only $n-1$ edges), the path from $t$ to $s$ should contain at most $n-1$ edges. Traversing on each edge takes constant time, so the traversing takes $O((n-1)*1)= O(n)$ time in the worst case.
+The time to traverse from $t$ back to $s$ depends on the number of edges on the path. Note that the depth-first tree contains $n-1$ edges (because the MST has only $n-1$ edges), the path from $t$ to $s$ should contain at most $n-1$ edges. Traversing on each edge takes constant time, so the traversing takes $O((n-1)*1)= O(n)$ time in the worst case.
 
 So the worst-case running time for the whole algorithm is 
 $$O(n^2) + O(n^2) + O(n^2 \log{n}) + O(n) + O(n) =  O(n^2 \log{n})$$.
